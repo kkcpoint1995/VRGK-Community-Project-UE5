@@ -76,5 +76,6 @@ DerivedDataCache/*
 .cursor/
 
 # Source files
-SourceModels/*
-SourceTextures/*
+SourceModels/
+SourceTextures/
+*.zip
