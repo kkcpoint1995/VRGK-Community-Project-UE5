@@ -79,3 +79,6 @@ DerivedDataCache/*
 SourceModels/
 SourceTextures/
 *.zip
+
+# Large binary assets (>100MB)
+Content/Point/ThaiTemple/Vihan/TEX_MAHS-THA-NWT-MNT-KHK-S-001-DA-002_u0_v0_diffuse.uasset
