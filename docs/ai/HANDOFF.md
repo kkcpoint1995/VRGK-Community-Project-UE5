@@ -53,3 +53,54 @@ Read **only the latest entry** at session start (or search by keyword). Archive 
 - Verification: compiled BP_TTHand, BP_SanghatanOffering, BP_FishBucket - 0 errors (the only compile errors in the log were mid-edit before the target pin was wired). PIE (non-VR): both hands GrabBox 28x22x20 @ (18,0,0); runtime MaxDistance 60 on both placed items. Box-overlap test (same box, hand facing item): old box reaches item only at 10 cm gap, new box at 10/20/30 cm (offering also 40 cm); GrabRoot->item 36-48 cm is inside 60 but was outside 30. Floor shows up in the overlap (WorldStatic) but is not grabbable.
 - State: 3 BPs saved, Map_Ford re-saved (no new map edits), **not committed**.
 - Limitations: real grab with Quest 2 not tested (hand actors could not be moved by script in non-VR PIE, so the trace was reproduced with a box overlap). In the editor Details panel the placed items still show MaxDistance 30; BeginPlay overrides it.
+
+## 2026-11-10 — Sanghatan placement fix + body lock (uncommitted)
+- Offering/bucket: StaticMesh profile + BPC_HandGrabUpdater DefaultCollisionProfile = GrabbedPhysicsActor (ignores VRPhysicsPawn rig channel) on SCS template and re-applied in BeginPlay. Root cause of the knock: on release the updater switched the bag back to PhysicsActor, which blocks the rig, so the bag depenetrated out of the 10 kg rig capsule and shoved the player.
+- BP_SanghatanTarget: Tick check — offering not held, not Done, within NearRadius (50 cm) of target+(0,0,20) → physics off, grab tag cleared, 0.4 s ease-in-out glide (Lerp transform) to the spot, then the existing chime → 1.5 s → blessing. The old overlap-snap nodes were removed. Rearm clears bGliding + Done; the offering's own ReturnHome re-enables physics and the grab tag.
+- New BPC_TTBodyLock component on BP_TTPawn: Tick holds virtual crouch at 0 and zeroes the rig's XY linear/angular velocity (gravity stays). Body only: head and hands are not clamped.
+- EyeHeight (int cm, instance editable) on BP_TeleportPoint, default 160; TeleportPoint_Ubosot = 100. BodyLock.SpawnEyeHeight = 160. At spawn (screen held black) and after each menu warp: ApplyEyeHeight → trace the floor under the pawn → VROriginRoot world Z offset so that camera − floor = EyeHeight (two passes, at +0.25 s and +1.05 s). Head tracking is free after that. Menu fade-in delayed to 1.2 s.
+- BP_SeatedSpot ArriveRadius default = 0 (auto-seat disabled; the Ubosot point's EyeHeight 100 replaces it).
+- PIE (non-VR) evidence: camera − floor = spawn 160.0, TP_3 158.9, TP_4 160.1, Dharma 160.0, Ubosot 100.7–101.7. Release near target → bag at target+20, physics off, tags cleared within 0.3 s; pawn moved 0.4 cm. Bag dropped inside the rig capsule → rig moved 0.6 cm. Rearm (warp away and back) → bag home, physics on, Done false. All 8 BPs compile with no errors.
+- Known limits: VRGK OnPlayerCalibrationUpdate is not overridden (if a recalibration fires, the next warp re-applies EyeHeight). Grabbables still Block the plain Pawn channel (the rig uses VRPhysicsPawn, which is ignored). In one PIE run the Ubosot warp landed ~1.3 m from the point and drifted a few cm — check in headset.
+
+### POINT_REVIEW headset checks
+1. Spawn and every warp: does your eye height feel like 160 cm (Ubosot seated ~100 cm), whatever your real height? Is head lean/crouch still free?
+2. Place the bag near the tray and let go: it should glide into place with no push on your body. Then the chime and blessing play.
+3. Drop the bag/bucket at your feet or inside your body: no push.
+4. Stick, jump and crouch do nothing. Hands are free.
+5. Warp away and back: the bag returns home and can be grabbed again.
+6. Ubosot warp lands on the mat (not ~1 m off).
+
+## 2026-11-10 18:50 (UTC+7) - Executor: no-clip floating body (no commit)
+- Request: Point - remove player collision; float and pass through everything; hands still grab. Also: on reset, fish should be back in the bucket.
+- Fix: BPC_TTBodyLock MeasureApply now starts with Cast BP_VRPhysicsPawn -> PhysicsRig -> SetSimulatePhysics(false) + SetCollisionResponseToAllChannels(Ignore) on FenderSphere/LocomotionSphere/BodyCapsule/HeadSphere, then AttachToComponent(FenderSphere, KeepWorld, no weld) for the other 3. This runs at spawn and after every warp. The rig is now a kinematic ghost, so the hand constraints (HandBase/PDBase -> FenderSphere) still drive the hands. Pawn CollisionCylinder was already NoCollision, CharMove MOVE_None. Only collision-ignore on a still-simulating rig was tried first: the rig fell or exploded, so it was rejected.
+- Verification (non-VR PIE): 0 compile errors; at spawn and after each warp sim=false, resp=Ignore, children attached. Warps: Ubosot (110,-3370) exact, eye 100.0; Dharma eye 160.0; TP_3 159.1; TP_4 160 (earlier run); stable +2 s, no drift. Scripted DoPlayerGrabRightPressed grabbed the offering (held, still blocks WorldStatic), rig unmoved. Ubosot 1.3 m landing drift was not seen (rig no longer collides).
+- Not done: FISH-002 bucket refill (stopped for time). Plan: the empty bucket returns home through BPC_ReturnHome without a refill; add a Refill (bEmpty=false + Water visible, fish are children of Water) on any reset, plus empty+not-held 3 s -> home+refill. Released fish already self-destroy after ~6 s swimming.
+- State: BPC_TTBodyLock + BP_TTPawn saved, **not committed**. Editor pref bThrottleCPUWhenNotForeground set back to True.
+
+## 2026-11-10 18:56 (UTC+7) - Executor: FISH-002 bucket refill (no commit)
+- BP_FishBucket: new custom event **Refill** (bEmpty=false, RefillT=0, Water SetVisibility true + propagate, so BucketFish_1-4 (children of Water) show again). Tick now goes through a Sequence: then_0 = old logic (pour / bAway reset, unchanged); then_1 = if bEmpty AND NOT pawn.IsObjectGrabbedByHand(self), RefillT += Delta*1000 (int ms), at >=3000 do SetActorTransform(Home, teleport), zero lin/ang velocity, Refill; otherwise RefillT=0. This covers BPC_ReturnHome (it uses the same 3 s), a drop near home, and a drop anywhere. The warp-away bAway path already refilled the bucket the same way.
+- RefillT is an **int** (mcp add_variable 'float' made an int), so it holds milliseconds; truncation makes it ~0-5% slow.
+- Released fish: unchanged; they swim ~6 s and destroy themselves.
+- Verification: compile 0 errors, saved. **PIE not run** (Point was using the editor at the time).
+
+## 2026-11-10 19:03 (UTC+7) - Executor: menu laser always visible while menu open (no commit)
+- Cause: the beam showed only when the Visibility trace from MotionControllerRight hit the visible MenuWidget, and it was 3 mm thick, so in the headset it looked missing. The logic itself worked (PIE: a hit placed the beam and dot).
+- Fix (BP_TTLaser): new instance var MenuRef (set to BP_TeleportMenuActor_C_0 in Map_Ford). The no-hit paths now Cast MenuRef -> if bOpen: beam from controller+8 cm, 300 cm long, visible, dot hidden; else hide as before. Hit-path beam thickness 0.003 -> 0.006; Dot template scale 0.015 -> 0.025. (GetActorOfClass with a class pin default could not be set via mcp - string default rejected.)
+- Verification: compile 0 errors, BP + Map_Ford saved; PIE: menu closed -> beam hidden; menu open -> beam visible.
+
+## 2026-11-10 19:15 (UTC+7) - Executor: FISH-002 fix - bucket did not reset in headset (no commit)
+- Finding: in PIE the 18:56 logic worked (tilt or real scripted grab, pour, release -> home + refill after 3 s, repeatable). It needed the bucket to be *released*. In the headset Point probably kept holding it, or a grip+trigger double grab kept it held, so it never reset.
+- Fix (BP_FishBucket): the refill timer now also runs while held if the bucket is upright-ish (up.z > 0.6; pour triggers at < 0.35). At 3 s: if held -> Refill in the hand (no teleport); if not held -> teleport home + zero velocity + Refill.
+- PIE (non-VR, scripted DoPlayerGrabRight + tilt): held pour -> empty; 3.6 s later still held -> refilled (water + 4 fish visible); pour #2 works; release -> home (740,3360) full after 4.5 s. Also 2 release-only cycles earlier. Compile 0 errors, saved.
+
+## 2026-11-11 04:40 (UTC+7) - Executor: PC test hotkeys 1-4 (no commit)
+- BP_TeleportMenuActor: InputKey events One/Two/Three/Four (bConsumeInput=False) -> SelectPoint(HotkeyPoint1..4), so they use the same path as the menu buttons (busy gate, release hands, fade, ForceStand, EyeHeight, LookAt, rearm). New instance vars HotkeyPoint1-4 set on the placed menu in Map_Ford in menu order (SortOrder 0,2,3,4): 1=TeleportPoint_Ubosot, 2=TeleportPoint_Dharma, 3=TeleportPoint_3 (viewpoint), 4=TeleportPoint_4 (fish release). No UI change. DefaultInput.ini has no 1-4 bindings. Keyboard number keys only (not numpad).
+- Verification: compile 0 errors, BP + Map_Ford saved. PIE: SelectPoint(HotkeyPointN) for N=1..4 landed on (110,-3370), (-2330,-1890), (-3500,2500), (690,3310). Real key presses not sent (would steal window focus).
+
+### FISH-002 v3 — glide-home reset (2026-11-11 04:47 ICT)
+- BP_FishBucket Tick then_1 replaced (old in-hand 3s refill + empty-unheld teleport removed).
+- After pour (bEmpty): wait 3.0 s (fish land max ~2.55 s after spawn) -> if held, pawn DoPlayerGrabLeft/RightReleased -> StaticMesh SimulatePhysics off -> GlideStart=actor transform -> bGlide.
+- Glide: RefillT ms timer, alpha=min(t/1000,1), smoothstep, TLerp(GlideStart,Home) SetActorTransform(teleport) ~1 s.
+- New custom event ResetBucket: bGlide=false, RefillT=0, transform=Home, physics on, zero lin/ang velocity, Refill (water+4 fish visible, bEmpty=false). Actor kept (menu RearmBucket ref valid).
+- Status: compiled; SAVE PENDING (editor was in PIE, save blocked). PIE test pending.
