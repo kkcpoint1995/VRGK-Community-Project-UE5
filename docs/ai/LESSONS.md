@@ -31,3 +31,7 @@ Short searchable notes. Search before adding. Format: **Topic**: date — proble
 
 - **PIE frozen when editor minimized**: 2026-11-10 - with the main VRGK editor window minimized, PIE world time stays 0 (nothing ticks); 'Use Less CPU in Background' throttles to 3 fps and physics explodes. Restore with ShowWindow(SW_SHOWNOACTIVATE) + set bThrottleCPUWhenNotForeground False while testing; restore after.
 - **No-clip VRGK rig**: 2026-11-10 - ignore-all responses on a simulating rig make it fall/explode; make rig bodies kinematic (SetSimulatePhysics false), attach to FenderSphere, then ignore-all.
+
+- (2026-11-11 05:32) VRGK gravity: BP_VRPhysicsPawn applies custom gravity via PhysicsRig.AddForceToPhysicsRig on every OnGravityUpdate unless IsNoclipEnabled (var NoclipActivated). When rig bodies are kinematic, set NoclipActivated=true from a TT component instead of editing VRGK. NoclipActivated is not instance-editable from Python in PIE (set via BP only).
+- mcp get_graph needs the exact function graph name; enumerate graphs with find_object('<bp>.<bpname>:<name>') over names extracted from the .uasset.
+- PowerShell vars are case-insensitive: $G and $g, $N and $n collide.

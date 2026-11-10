@@ -118,3 +118,10 @@ Read **only the latest entry** at session start (or search by keyword). Archive 
 - Map_Ford: target instance scale 0.6 -> 1.0 (tray real size; bag fits), instance Glow overrides cleared. Map saved.
 - PIE: glow on at start; bag dropped within radius -> Done, glides, bottom exactly on tray floor (186.95), glow off; Rearm -> glow on.
 - Known: per-frame PIE warning 'PhysicsRig ... Simulate Physics ... AddForce' from no-clip rig (VRGK base pawn AddForce) — not silenced (would need VRGK base edit).
+
+### UX-006 — AddForce PIE warning spam removed (2026-11-11 05:32 ICT)
+- Source: VRGK BP_VRPhysicsPawn EventGraph 'On Gravity Update (BP_VRGravityTracker)' -> Branch(Is Noclip Enabled) -> False -> BP_VRPhysicsPawn_PhysicsRig.AddForceToPhysicsRig (AddForce on FenderSphere/BodyCapsule/HeadSphere/LocomotionSphere, every gravity tick). Our no-clip rig is kinematic -> warning x4 per tick.
+- Fix (ThaiTemple only): BPC_TTBodyLock MeasureApply chain, after the 3rd Attach node: Set NoclipActivated=true (target = Cast To BP_VRPhysicsPawn result) -> then original Cast To BP_VRBasePawn. NoclipActivated (BP_VRGamePawn var) is read ONLY by IsNoclipEnabled, which is called ONLY at that gravity branch (searched all VRGK/ThaiTemple assets + all pawn graphs) -> only effect: skip gravity force on the rig.
+- Undo: delete the 'Set NoclipActivated' node in BPC_TTBodyLock (~840,3440) and reconnect last Attach.then -> Cast To BP_VRBasePawn.
+- PIE: 0 AddForce warnings since start (~60 s), rig still, warps 1-4 OK (EyeHeight: Ubosot 100 = point setting, Dharma 160, 3 ~159, 4 160), bucket + bag grab OK, bag release on tray -> locks centred.
+- Note: on a fresh PIE, warping straight from spawn to Ubosot left the physics hands stuck ~2.5 m away (not following); re-warp fixed it. Looks pre-existing (hands blocked on the warp path), not caused by this change — watch in headset.
