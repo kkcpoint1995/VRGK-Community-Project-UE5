@@ -49,3 +49,17 @@ Update status when work moves. Do not mark Verified in VR unless Point tested on
 - Glide: RefillT ms timer, alpha=min(t/1000,1), smoothstep, TLerp(GlideStart,Home) SetActorTransform(teleport) ~1 s.
 - New custom event ResetBucket: bGlide=false, RefillT=0, transform=Home, physics on, zero lin/ang velocity, Refill (water+4 fish visible, bEmpty=false). Actor kept (menu RearmBucket ref valid).
 - Status: compiled; SAVE PENDING (editor was in PIE, save blocked). PIE test pending.
+
+### FISH-002 v3 — saved + PIE verified (2026-11-11 05:16 ICT)
+- BP_FishBucket saved. PIE x2: tilt -> pour, bEmpty; +3 s glide (physics off) ~1 s eased -> home; ResetBucket -> water + 4 fish visible, bEmpty=false, physics on. Both rounds OK.
+
+### SANGHATAN-TRAY — teak tray + reed mat replace blue placeholder (2026-11-11 05:16 ICT)
+- Imported from SourceModels/SanghatanTray to /Game/ThaiTemple/Sanghatan/Tray (SM_SanghatanTray, SM_ReedMat, SM_SanghatanGlow + Textures/). FBX came in 1/100 -> reimported with import_uniform_scale=100 (now 45x35x9.3, 90x60x0.7 cm). UV2 lightmap index 1 OK.
+- UCX boxes did NOT import -> added simple box collision (full bounds) to tray and mat; glow NoCollision.
+- Textures: ORM sRGB off TC_Masks, glow mask sRGB off Grayscale, normals TC_Normalmap (DirectX).
+- Materials /Game/ThaiTemple/Sanghatan: M_TeakTray, M_ReedMat (BC/N/ORM); M_SanghatanGlow unlit additive two-sided, emissive = GlowColor(1,0.62,0.18) x mask x Intensity(4) x pulse lerp(0.55..1, sin(t*PulseSpeed 0.35)).
+- BP_SanghatanTarget: new ReedMat (root, 0) -> Tray (z 0.55) -> Glow (re-used component, now SM_SanghatanGlow at 0,0,0). Tray/Mat collision BlockAll but Pawn=Ignore, no step-up. Existing glow show/hide logic kept (hide on lock, show on Rearm).
+- Glide/snap target offset 0,0,20 -> 0,0,26.95 (bag pivot centre, half height 20 + mat 0.55 + floor 6.4). NearRadius 50 unchanged.
+- Map_Ford: target instance scale 0.6 -> 1.0 (tray real size; bag fits), instance Glow overrides cleared. Map saved.
+- PIE: glow on at start; bag dropped within radius -> Done, glides, bottom exactly on tray floor (186.95), glow off; Rearm -> glow on.
+- Known: per-frame PIE warning 'PhysicsRig ... Simulate Physics ... AddForce' from no-clip rig (VRGK base pawn AddForce) — not silenced (would need VRGK base edit).
