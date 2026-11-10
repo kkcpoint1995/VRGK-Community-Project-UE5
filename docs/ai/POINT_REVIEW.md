@@ -14,6 +14,7 @@ Rows the bot decided without a clear Point instruction. Point should confirm or 
 | 2026-11-10 | DharmaPoint popup appears 0.25 s after arrival; arrival anchor = its editor position | Medium | Executor | Remove Delay / ArriveAnchor nodes in BP_DharmaPoint |
 | 2026-11-10 | Left-hand trigger + right-hand trigger also grab (in addition to grip); releasing either button drops | Medium | Executor | Delete PlayerTrigger nodes in BP_TTPawn |
 | 2026-11-10 | BUG-WHITE fix: hid (Visible=false) the 4 unbuilt reflection captures RC_River/RC_Pier/RC_Wihan/RC_Pagoda instead of baking them (bake = LIGHT-001, only on Point's go) | Medium | Executor | Select RC_* in Map_Ford, tick Visible, then Build > Build Reflection Captures (must build, or the white bug returns) |
+| 2026-11-10 | Grab range x2: BP_TTHand GrabBox 14x11x10 -> 28x22x20 cm and moved forward x7 -> x18 (rear edge stays ~4 cm behind hand origin, front 18 -> 40 cm); BPC_HandInteraction1 MaxDistance 30 -> 60 on BP_SanghatanOffering + BP_FishBucket (template + BeginPlay "Set MaxDistance 60", because placed Map_Ford instances keep a stale 30 that the editor will not let us edit per-instance) | Medium | Executor | Too far/grabs neighbours: set BP_TTHand UCS SetBoxExtent back to 14,11,10 and SetRelativeLocation to 7,0,0; set 30 in the Set MaxDistance nodes (BeginPlay) of both item BPs |
 
 ## Template
 

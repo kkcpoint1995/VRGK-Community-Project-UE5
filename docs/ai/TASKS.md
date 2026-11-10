@@ -16,6 +16,7 @@ Update status when work moves. Do not mark Verified in VR unless Point tested on
 | VID-FINAL | Game logic + Art | Blocked on Point | Real idle/blessing clips after dummy OK | Dummy only so far |
 | UX-001 | VR tech | Reported working in PIE (uncommitted) | Point headset checklist in POINT_REVIEW | PIE 2026-11-10: compile 0 errors, menu/warp/rearm/return-home/sermon pass; **headset pending** |
 | UX-002 | VR tech | Open | Headset check only: trigger+grip grab, laser dot, haptics/click loudness, left stick dead, comfort of menu follow | Needs Quest 2 |
+| UX-003 | VR tech | Reported working in PIE (uncommitted) | Headset check: grab offering/bucket from ~2x previous distance; hand must not grab floor/railings or the wrong item | PIE 2026-11-10: GrabBox 28x22x20 @ x18, MaxDistance 60 at runtime on placed offering+bucket; overlap test reaches item at 30 cm gap (old 10 cm); compile 0 errors; **headset pending** |
 
 ## Status legend
 
