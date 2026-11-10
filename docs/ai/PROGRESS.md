@@ -21,3 +21,9 @@ See `git log --oneline`. Recent committed titles (as of docs bootstrap, 2026-11-
 - Fish system polish.
 - White-start-screen headset diagnosis.
 - Any backlog without explicit go-ahead.
+
+## 2026-11-10 (UTC+7) - UX-001 comfort/controls pass (uncommitted, saved assets)
+
+- New: `/Game/ThaiTemple/Player/BP_TTPawn`, `BP_TTHand`, `BP_TTGameMode` (Map_Ford world-settings game mode); `/Game/ThaiTemple/Teleport/BP_TTLaser` + `M_TTLaser` (placed as `TTLaser`); `/Game/ThaiTemple/Common/BPC_ReturnHome`, `BPC_TTFeedback`; `/Game/ThaiTemple/Audio/UI/SFX_UI_SoftClick` (65 ms self-made click).
+- Changed: BP_TeleportMenuActor (busy gate, eased follow, non-consuming inputs, release hands + haptic before warp, OnWarpRearm, stand-up before warp), BP_TeleportPoint (LookAtTarget facing), BP_DharmaPoint (fixed arrival anchor, head placement from pawn Camera, Yes/No feedback), BP_SeatedSpot (ForceStand event), BP_SanghatanTarget (bell volume 3.0 -> 1.0), BP_SanghatanOffering ('pull' tag -> 'grab', ReturnHome), BP_FishBucket (ReturnHome, instance HandInteraction z38.6 / Pour z27), pointer indices 0/1/2 + debug off. Map_Ford: TeleportPoint_1/_2 deleted, TeleportPoint_Dharma moved to the sala.
+- PIE (non-VR) passed; headset tests pending (see POINT_REVIEW checklist).

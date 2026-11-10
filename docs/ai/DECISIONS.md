@@ -20,6 +20,12 @@ Dated Asia/Bangkok (UTC+7). Append only. Prefer facts Point stated; label inferr
 - **Free assets only; no startling sounds.**
 - **Repo md as memory** (2026-11-08): apply CW-style project markdown; remember → write Docs/ai, not bot-only memory. Commit docs locally, do not push (authorized for that docs commit only).
 
+## 2026-11-10 (UTC+7) - Point (via PM) - UX-001 8-step plan approved
+- Decision: implement the 8-step comfort plan; menu follows head **softly/eased**; **delete TeleportPoint_1**; disable left-Y height re-calibration (PlayerMenu) in the new pawn; new pawn = no move/jump/crouch, snap turn forced, pull None, BP_TTHand; trigger OR grip grabs; return-home 3 s; soft UI click ~0.3 volume; bell <= 1.0; rearm events on every warp.
+- Context: bedridden-patient seated Quest 2 experience; production polish.
+- Commit (if any): none (Point: do not commit).
+
+
 ## Template
 
 ```
