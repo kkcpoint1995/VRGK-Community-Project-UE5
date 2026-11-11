@@ -132,3 +132,21 @@ Update status when work moves. Do not mark Verified in VR unless Point tested on
   - Set Sala_MonkScreen z back to 354.
   - Set MI_SalaVideoScreen ClipScale 1, offsets 0.
   - For strict life-size only: keep v2 and set ClipScale 1 + offsets 0. That gives 96 cm sitting, cushion bottom z325.6, still clear of the altar.
+## DHARMA SALA v3 - "F" shortcut for ฟังธรรม + glowing button (2026-11-11, not committed, NOT PIE-tested - Point tests)
+- Existing keys: BP_TeleportMenuActor InputKey 1-4 = teleports (Ubosot / Dharma / viewpoint / fish), M = menu, all with bConsumeInput=False and working from anywhere. VRGK non-VR handler uses W A S D Q Space LShift LCtrl and the mouse. Legacy input maps are Oculus controllers only. No VR-controller shortcut convention exists (the menu uses PlayerMenu / ButtonLeft / TriggerRight actions).
+- New key: F ("Fang"), set up like 1-4. BP_DharmaPoint (AutoReceiveInput=Player0) has InputKey F (bConsumeInput=False) -> Branch(bPopup) -> the same Hide Popup -> Cast VideoScreen -> PlaySermon chain as the laser/trigger press (no haptic).
+  - Scope: works only while the ฟังธรรม button is showing (player near the sala and not yet pressed), exactly like the button. Dev flow from anywhere: press 2, then F.
+- Glow:
+  - Sala_ButtonGlow is a StaticMeshActor (/Engine/BasicShapes/Plane, 40 x 70 cm) at (-2557.8,-1890,246.8), pitch -70. It sits 0.8 cm in front of the widget, parallel to it. Hidden in game by default.
+  - Material MI_SalaButtonGlow / M_SalaButtonGlow: unlit, additive, two-sided, emissive only (lights nothing; additive, so it cannot cover the monk).
+    - Emissive = GlowColor (1, .62, .18) x T_SalaButtonGlow halo mask x Intensity 2.5 x calm pulse.
+    - The mask is 0 inside the button and fades out over ~3 cm around a 18 x 45 cm rect.
+    - Pulse goes from PulseMin 0.45 to 1 at PulseSpeed 0.22 (~4.5 s per cycle), sine, no flashing.
+    - Hover: lerp to HoverBoost 1.9 by param Hover.
+  - BP_DharmaPoint: new instance var GlowActor = Sala_ButtonGlow. ShowPopup -> SetActorHiddenInGame(false); HidePopup -> SetActorHiddenInGame(true). TickPopup -> GlowActor.StaticMeshComponent SetScalarParameterValueOnMaterials("Hover", YesEntry.IsHovered).
+- Leftover (harmless, unused): MPC_SalaButton + var GlowMPC + 4 "Set Scalar Parameter Value (Collection)" nodes. The MPC route did not drive the material, so the material no longer reads the MPC. Safe to delete later.
+- Tuning: MI_SalaButtonGlow Intensity / PulseMin / PulseSpeed / HoverBoost / GlowColor. If the halo is off-size, regenerate T_SalaButtonGlow (box: /workspace/sala_look/T_SalaButtonGlow.png) or scale the actor.
+- Undo:
+  - Delete actor Sala_ButtonGlow.
+  - In BP_DharmaPoint, delete the InputKey F + Branch, the 2 SetActorHiddenInGame nodes, the SetScalarParameterValueOnMaterials node and the 4 MPC nodes. Reconnect Set World Transform.then -> Branch(44A903), remove the vars GlowActor / GlowMPC, and compile.
+  - Optionally delete M/MI_SalaButtonGlow, T_SalaButtonGlow and MPC_SalaButton.
