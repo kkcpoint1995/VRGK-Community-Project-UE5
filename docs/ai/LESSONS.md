@@ -35,3 +35,5 @@ Short searchable notes. Search before adding. Format: **Topic**: date — proble
 - (2026-11-11 05:32) VRGK gravity: BP_VRPhysicsPawn applies custom gravity via PhysicsRig.AddForceToPhysicsRig on every OnGravityUpdate unless IsNoclipEnabled (var NoclipActivated). When rig bodies are kinematic, set NoclipActivated=true from a TT component instead of editing VRGK. NoclipActivated is not instance-editable from Python in PIE (set via BP only).
 - mcp get_graph needs the exact function graph name; enumerate graphs with find_object('<bp>.<bpname>:<name>') over names extracted from the .uasset.
 - PowerShell vars are case-insensitive: $G and $g, $N and $n collide.
+
+- (2026-11-11 06:09) Python-built materials: Desaturation input pin name is '' (not 'Input'); sampler type must match texture compression (TC_Masks -> SAMPLERTYPE_MASKS) or the whole material falls back to the grey checker default material - always grep log for 'Failed to compile Material' after recompile_material. Plane with relative pitch 90 needs video UV (v,1-u).
